@@ -16,8 +16,8 @@ export function ApprovalItem({
   busy?: boolean
 }): ReactNode {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4">
-      <div>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4">
+      <div className="min-w-0">
         <p className="font-semibold">{title}</p>
         <p className="text-sm text-[var(--color-ink-soft)]">{subtitle}</p>
       </div>
@@ -26,14 +26,14 @@ export function ApprovalItem({
         <button
           disabled={busy}
           onClick={onReject}
-          className="rounded-full px-3 py-2 text-sm font-semibold border border-[var(--color-clay)] text-[var(--color-clay)] disabled:opacity-50"
+          className="flex-1 sm:flex-none rounded-full px-3 py-2 text-sm font-semibold border border-[var(--color-clay)] text-[var(--color-clay)] disabled:opacity-50"
         >
           Ablehnen
         </button>
         <button
           disabled={busy}
           onClick={onApprove}
-          className="rounded-full px-3 py-2 text-sm font-semibold bg-[var(--color-sage)] text-white disabled:opacity-50"
+          className="flex-1 sm:flex-none rounded-full px-3 py-2 text-sm font-semibold bg-[var(--color-sage)] text-white disabled:opacity-50"
         >
           Bestätigen
         </button>
