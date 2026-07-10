@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
@@ -139,6 +140,21 @@ export default function ParentSettings() {
             Anwenden
           </button>
         </form>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="font-display text-xl font-semibold mb-2">Familie wechseln</h2>
+        <p className="text-sm text-[var(--color-ink-soft)] mb-3">
+          Hat ein anderer Elternteil eurer Familie schon einen Account und möchte sich mit eurer gemeinsamen
+          Familie verbinden (z. B. weil versehentlich eine eigene Familie angelegt wurde)? Auf der folgenden Seite
+          kann er/sie einen Einladungscode eingeben.
+        </p>
+        <Link
+          to="/parent/join-family"
+          className="inline-block rounded-full px-4 py-2 font-semibold border border-[var(--color-ink)] dark:border-[var(--color-paper-dim)]"
+        >
+          Zur Seite „Familie wechseln"
+        </Link>
       </section>
     </Layout>
   )
