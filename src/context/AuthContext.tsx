@@ -36,9 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession)
       if (newSession) {
-        loadProfile(newSession.user.id)
+        // Wichtig: loading wieder auf true setzen, bis das Profil (Rolle
+        // Eltern/Kind) geladen ist. Sonst leitet die App schon weiter, bevor
+        // klar ist, wer eingeloggt ist, und man landet kurz wieder auf der
+        // Login-Seite ("man muss sich zweimal anmelden").
+        setLoading(true)
+        loadProfile(newSession.user.id).finally(() => setLoading(false))
       } else {
         setProfile(null)
+        setLoading(false)
       }
     })
 
