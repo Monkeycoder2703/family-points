@@ -81,9 +81,9 @@ export default function ChildDashboard() {
         {openTasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center justify-between rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
           >
-            <span className="font-semibold">{task.title}</span>
+            <span className="font-semibold min-w-0">{task.title}</span>
             <div className="flex items-center gap-3">
               <span className="ledger-figure font-semibold text-[var(--color-coin)]">+{task.points}</span>
               <button
