@@ -23,6 +23,7 @@ export interface InviteCode {
   family_id: string
   child_profile_id: string
   code: string
+  for_role: Role
   status: 'pending' | 'used' | 'expired'
   expires_at: string
 }
