@@ -14,6 +14,7 @@ import ParentApprovals from './pages/parent/Approvals'
 import ParentRewards from './pages/parent/Rewards'
 import ParentGrades from './pages/parent/Grades'
 import ParentSettings from './pages/parent/Settings'
+import ParentJoinFamily from './pages/parent/JoinFamily'
 
 import ChildDashboard from './pages/child/Dashboard'
 import ChildTasks from './pages/child/Tasks'
@@ -54,6 +55,7 @@ export default function App() {
             <Route path="/parent/rewards" element={<ProtectedRoute role="parent"><ParentRewards /></ProtectedRoute>} />
             <Route path="/parent/grades" element={<ProtectedRoute role="parent"><ParentGrades /></ProtectedRoute>} />
             <Route path="/parent/settings" element={<ProtectedRoute role="parent"><ParentSettings /></ProtectedRoute>} />
+            <Route path="/parent/join-family" element={<ProtectedRoute role="parent"><ParentJoinFamily /></ProtectedRoute>} />
 
             <Route path="/child/dashboard" element={<ProtectedRoute role="child"><ChildDashboard /></ProtectedRoute>} />
             <Route path="/child/tasks" element={<ProtectedRoute role="child"><ChildTasks /></ProtectedRoute>} />
