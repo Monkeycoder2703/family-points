@@ -1,6 +1,13 @@
 @import "tailwindcss";
 
 /*
+  Wichtig: Ohne diese Zeile richten sich alle "dark:"-Klassen nach der
+  Systemeinstellung des Geräts, nicht nach unserem eigenen Dark-Mode-Schalter
+  (der die Klasse "dark" auf <html> setzt). Diese Zeile verbindet beides.
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
   Design language: "Kassenbuch & Spardose" (ledger & piggy bank).
   Trustworthy ledger tones for the parent side, warm coin-gold for points/
   rewards, a soft sage for approvals and a clay-red for rejections/alerts.
@@ -38,6 +45,13 @@ html {
 }
 html.dark {
   color-scheme: dark;
+  /* Diese beiden Variablen werden überall per var(--color-ink...) benutzt
+     (Überschriften, Beschreibungstexte, Zeitstempel usw.) - durch die
+     Überschreibung hier werden sie automatisch im ganzen Dark Mode hell
+     genug, ohne dass jede einzelne Stelle im Code angepasst werden muss. */
+  --color-ink: #eef1ea;
+  --color-ink-soft: #a9c2b9;
+  --color-paper-dim: var(--color-border-dark);
 }
 
 body {
@@ -50,7 +64,6 @@ body {
 
 html.dark body {
   background: var(--color-bg-dark);
-  color: #eef1ea;
 }
 
 .font-display {
@@ -96,9 +109,6 @@ html.dark body {
   border-radius: 999px;
   background: var(--color-paper-dim);
   overflow: hidden;
-}
-html.dark .jar {
-  background: var(--color-border-dark);
 }
 .jar-fill {
   height: 100%;
