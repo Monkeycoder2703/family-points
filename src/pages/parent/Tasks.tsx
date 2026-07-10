@@ -105,9 +105,9 @@ export default function ParentTasks() {
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="flex items-center justify-between rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
           >
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold">{task.title}</p>
               <p className="text-xs text-[var(--color-ink-soft)] uppercase tracking-wide">
                 {task.repeat_type} {task.category ? `· ${task.category}` : ''}
