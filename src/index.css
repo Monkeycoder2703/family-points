@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+/*
+  Design language: "Kassenbuch & Spardose" (ledger & piggy bank).
+  Trustworthy ledger tones for the parent side, warm coin-gold for points/
+  rewards, a soft sage for approvals and a clay-red for rejections/alerts.
+  Fraunces carries headings and big point numbers with some personality;
+  Inter runs the UI; IBM Plex Mono sets anything that behaves like a ledger
+  figure (point counts, euro amounts, transaction history).
+*/
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-paper: #f4f6f0;
+  --color-paper-dim: #e9ede3;
+  --color-ink: #17322c;
+  --color-ink-soft: #3d5750;
+  --color-surface: #ffffff;
+  --color-surface-dark: #14231f;
+  --color-bg-dark: #0e1a17;
+  --color-border-dark: #274038;
+
+  --color-coin: #e2a33b;
+  --color-coin-soft: #f6e2bb;
+  --color-sage: #5c8a68;
+  --color-sage-soft: #dcead0;
+  --color-clay: #d2624a;
+  --color-clay-soft: #f5dcd5;
+
+  --color-parent: #2c5f56;
+  --color-child: #e2a33b;
+}
+
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+html.dark body {
+  background: var(--color-bg-dark);
+  color: #eef1ea;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Ledger-style numeric figures used for point counts / euro amounts */
+.ledger-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Signature element: an "approved" rubber-stamp mark for confirmed tasks */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transform: rotate(-4deg);
+  border: 2px solid var(--color-sage);
+  color: var(--color-sage);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  opacity: 0.9;
+}
+.stamp.rejected {
+  border-color: var(--color-clay);
+  color: var(--color-clay);
+}
+
+/* Coin-jar progress meter used on reward cards */
+.jar {
+  position: relative;
+  width: 100%;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--color-paper-dim);
+  overflow: hidden;
+}
+html.dark .jar {
+  background: var(--color-border-dark);
+}
+.jar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-coin), #f0c877);
+  transition: width 0.4s ease;
+}
+
+::selection {
+  background: var(--color-coin-soft);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-coin);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
