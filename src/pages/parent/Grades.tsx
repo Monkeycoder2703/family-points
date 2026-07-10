@@ -55,7 +55,7 @@ export default function ParentGrades() {
             className="rounded-2xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
           >
             <h2 className="font-semibold mb-3">{rule.subject_type === 'main' ? 'Hauptfächer' : 'Nebenfächer'}</h2>
-            <div className="grid grid-cols-3 gap-2 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
               {([1, 2, 3, 4, 5, 6] as const).map((g) => {
                 const field = `grade_${g}` as keyof GradePointRule
                 return (
