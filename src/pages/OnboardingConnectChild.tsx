@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { Layout } from '../components/Layout'
-import type { InviteCode } from '../types'
+import type { InviteCode, Role } from '../types'
 
 export default function OnboardingConnectChild() {
+  const [forRole, setForRole] = useState<Role>('child')
   const [childName, setChildName] = useState('')
   const [invite, setInvite] = useState<InviteCode | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -13,7 +14,8 @@ export default function OnboardingConnectChild() {
     setLoading(true)
     setError(null)
     const { data, error } = await supabase.rpc('create_invite_code', {
-      p_child_display_name: childName || null,
+      p_child_display_name: forRole === 'child' ? childName || null : null,
+      p_for_role: forRole,
     })
     setLoading(false)
     if (error) {
@@ -26,19 +28,51 @@ export default function OnboardingConnectChild() {
   return (
     <Layout>
       <div className="max-w-md mx-auto text-center">
-        <h1 className="font-display text-2xl font-semibold mb-2">Kind verbinden</h1>
+        <h1 className="font-display text-2xl font-semibold mb-2">Familienmitglied verbinden</h1>
+
+        <div className="flex rounded-full border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] p-1 mb-5">
+          <button
+            type="button"
+            onClick={() => {
+              setForRole('child')
+              setInvite(null)
+            }}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold ${
+              forRole === 'child' ? 'bg-[var(--color-child)] text-white' : ''
+            }`}
+          >
+            Kind
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setForRole('parent')
+              setInvite(null)
+            }}
+            className={`flex-1 rounded-full py-2 text-sm font-semibold ${
+              forRole === 'parent' ? 'bg-[var(--color-parent)] text-white' : ''
+            }`}
+          >
+            Zweiter Elternteil
+          </button>
+        </div>
+
         <p className="text-[var(--color-ink-soft)] mb-6">
-          Erzeuge einen Code und gib ihn deinem Kind – es gibt ihn bei der Registrierung ein und ist danach dauerhaft mit eurer Familie verbunden.
+          {forRole === 'child'
+            ? 'Erzeuge einen Code und gib ihn deinem Kind – es gibt ihn bei der Registrierung ein und ist danach dauerhaft mit eurer Familie verbunden.'
+            : 'Erzeuge einen Code für den zweiten Elternteil. Er/sie gibt den Code unter „Einstellungen → Familie wechseln" ein und wechselt damit zu eurer gemeinsamen Familie.'}
         </p>
 
         {!invite ? (
           <div className="flex flex-col gap-3">
-            <input
-              placeholder="Name des Kindes (optional, nur als Erinnerung)"
-              value={childName}
-              onChange={(e) => setChildName(e.target.value)}
-              className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-4 py-2.5"
-            />
+            {forRole === 'child' && (
+              <input
+                placeholder="Name des Kindes (optional, nur als Erinnerung)"
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-4 py-2.5"
+              />
+            )}
             <button
               onClick={generate}
               disabled={loading}
