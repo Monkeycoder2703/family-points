@@ -30,10 +30,10 @@ export function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🪙</span>
-            <span className="font-display font-semibold text-lg" style={{ color: accent }}>
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="text-xl shrink-0">🪙</span>
+            <span className="font-display font-semibold text-base sm:text-lg truncate" style={{ color: accent }}>
               FamilyPoints
             </span>
           </div>
@@ -54,11 +54,11 @@ export function Layout({ children }: { children: ReactNode }) {
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={toggle}
               aria-label="Dark Mode umschalten"
-              className="w-9 h-9 rounded-full flex items-center justify-center border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
+              className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
             >
               {dark ? '☀️' : '🌙'}
             </button>
@@ -67,9 +67,11 @@ export function Layout({ children }: { children: ReactNode }) {
                 await signOut()
                 navigate('/login')
               }}
-              className="text-sm font-semibold px-3 py-1.5 rounded-full border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
+              aria-label="Abmelden"
+              className="text-sm font-semibold px-3 py-1.5 rounded-full border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] whitespace-nowrap"
             >
-              Abmelden
+              <span className="hidden sm:inline">Abmelden</span>
+              <span className="sm:hidden">⎋</span>
             </button>
           </div>
         </div>
