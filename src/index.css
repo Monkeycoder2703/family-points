@@ -9,8 +9,9 @@
 
 /*
   Design language: "Kassenbuch & Spardose" (ledger & piggy bank).
-  Trustworthy ledger tones for the parent side, warm coin-gold for points/
-  rewards, a soft sage for approvals and a clay-red for rejections/alerts.
+  Neutrale Töne sind jetzt blau (hell: weiß/hellblau, dunkel: dunkelblau);
+  Logo-/Markenfarbe (--color-parent) und die Akzentfarben (Gold für Punkte,
+  Salbeigrün für Freigaben, Ton für Ablehnungen) bleiben bewusst unverändert.
   Fraunces carries headings and big point numbers with some personality;
   Inter runs the UI; IBM Plex Mono sets anything that behaves like a ledger
   figure (point counts, euro amounts, transaction history).
@@ -20,14 +21,14 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
 
-  --color-paper: #f4f6f0;
-  --color-paper-dim: #e9ede3;
-  --color-ink: #17322c;
-  --color-ink-soft: #3d5750;
+  --color-paper: #eaf1fa;
+  --color-paper-dim: #d3e3f2;
+  --color-ink: #17293b;
+  --color-ink-soft: #55708a;
   --color-surface: #ffffff;
-  --color-surface-dark: #14231f;
-  --color-bg-dark: #0e1a17;
-  --color-border-dark: #274038;
+  --color-surface-dark: #1b2c44;
+  --color-bg-dark: #101d31;
+  --color-border-dark: #2a3f5c;
 
   --color-coin: #e2a33b;
   --color-coin-soft: #f6e2bb;
@@ -49,8 +50,8 @@ html.dark {
      (Überschriften, Beschreibungstexte, Zeitstempel usw.) - durch die
      Überschreibung hier werden sie automatisch im ganzen Dark Mode hell
      genug, ohne dass jede einzelne Stelle im Code angepasst werden muss. */
-  --color-ink: #eef1ea;
-  --color-ink-soft: #a9c2b9;
+  --color-ink: #eef3f9;
+  --color-ink-soft: #93a9c2;
   --color-paper-dim: var(--color-border-dark);
 }
 
