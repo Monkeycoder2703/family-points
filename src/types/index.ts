@@ -87,6 +87,7 @@ export interface Grade {
   grade_value: number
   date: string
   points_awarded: number
+  is_report_card: boolean
   subject?: Subject
 }
 
@@ -115,4 +116,5 @@ export interface PointSetting {
   family_id: string
   points_per_unit: number
   euro_value: number
+  report_card_multiplier: number
 }
