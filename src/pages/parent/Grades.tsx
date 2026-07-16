@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
-import type { Grade, GradePointRule, Subject } from '../../types'
+import type { Grade, GradePointRule, PointSetting, Subject } from '../../types'
 
 export default function ParentGrades() {
   const { profile } = useAuth()
@@ -11,6 +11,8 @@ export default function ParentGrades() {
   const [grades, setGrades] = useState<Grade[]>([])
   const [subjectName, setSubjectName] = useState('')
   const [subjectType, setSubjectType] = useState<'main' | 'minor'>('main')
+  const [multiplier, setMultiplier] = useState(2)
+  const [savingMultiplier, setSavingMultiplier] = useState(false)
 
   async function load() {
     if (!profile?.family_id) return
@@ -24,6 +26,12 @@ export default function ParentGrades() {
       .order('date', { ascending: false })
       .limit(20)
     setGrades((g as unknown as Grade[]) ?? [])
+    const { data: setting } = await supabase
+      .from('point_settings')
+      .select('*')
+      .eq('family_id', profile.family_id)
+      .single()
+    if (setting) setMultiplier((setting as PointSetting).report_card_multiplier)
   }
 
   useEffect(() => {
@@ -44,9 +52,48 @@ export default function ParentGrades() {
     load()
   }
 
+  async function saveMultiplier(e: React.FormEvent) {
+    e.preventDefault()
+    if (!profile?.family_id) return
+    setSavingMultiplier(true)
+    await supabase
+      .from('point_settings')
+      .update({ report_card_multiplier: multiplier })
+      .eq('family_id', profile.family_id)
+    setSavingMultiplier(false)
+  }
+
   return (
     <Layout>
       <h1 className="font-display text-2xl font-semibold mb-6">Noten &amp; Punkteregeln</h1>
+
+      <div className="rounded-2xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4 mb-8">
+        <h2 className="font-semibold mb-1">Zeugnisnoten</h2>
+        <p className="text-sm text-[var(--color-ink-soft)] mb-3">
+          Zeugnisnoten zählen mit diesem Multiplikator mehr Punkte als eine einzelne Note (Grundwert × Multiplikator,
+          auf ganze Punkte gerundet).
+        </p>
+        <form onSubmit={saveMultiplier} className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            Multiplikator
+            <input
+              type="number"
+              min={1}
+              step={0.5}
+              value={multiplier}
+              onChange={(e) => setMultiplier(Number(e.target.value))}
+              className="w-20 rounded-lg border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-transparent px-2 py-1 ledger-figure"
+            />
+            ×
+          </label>
+          <button
+            disabled={savingMultiplier}
+            className="rounded-full px-4 py-1.5 text-sm font-semibold bg-[var(--color-parent)] text-white disabled:opacity-50"
+          >
+            Speichern
+          </button>
+        </form>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-8">
         {rules.map((rule) => (
@@ -113,8 +160,13 @@ export default function ParentGrades() {
             key={g.id}
             className="flex items-center justify-between rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-3"
           >
-            <span>
+            <span className="flex items-center gap-2">
               {g.subject?.name} · Note {g.grade_value} · {new Date(g.date).toLocaleDateString('de-DE')}
+              {g.is_report_card && (
+                <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-coin-soft)] text-[var(--color-ink)]">
+                  Zeugnis
+                </span>
+              )}
             </span>
             <span className="ledger-figure font-semibold text-[var(--color-coin)]">
               {g.points_awarded > 0 ? '+' : ''}
