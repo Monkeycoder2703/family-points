@@ -12,6 +12,7 @@ export default function ParentRewards() {
   const [setting, setSetting] = useState<PointSetting | null>(null)
   const [title, setTitle] = useState('')
   const [price, setPrice] = useState(500)
+  const [priceEuroInput, setPriceEuroInput] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [saving, setSaving] = useState(false)
@@ -42,6 +43,14 @@ export default function ParentRewards() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.family_id])
 
+  function handleEuroChange(raw: string) {
+    setPriceEuroInput(raw)
+    const euro = parseFloat(raw.replace(',', '.'))
+    if (!Number.isNaN(euro) && setting) {
+      setPrice(euroToPoints(euro, setting))
+    }
+  }
+
   async function importFromUrl(e: React.FormEvent) {
     e.preventDefault()
     if (!productUrl.trim()) return
@@ -55,6 +64,7 @@ export default function ParentRewards() {
       if (info.imageUrl) setImageUrl(info.imageUrl)
       if (info.priceEuro !== undefined && setting) {
         setPrice(euroToPoints(info.priceEuro, setting))
+        setPriceEuroInput(String(info.priceEuro))
         setImportedPriceEuro(info.priceEuro)
       }
       if (!info.title && !info.imageUrl && info.priceEuro === undefined) {
@@ -84,6 +94,7 @@ export default function ParentRewards() {
     setDescription('')
     setImageUrl('')
     setPrice(500)
+    setPriceEuroInput('')
     setProductUrl('')
     setImportedPriceEuro(null)
     setImportError(null)
@@ -138,16 +149,34 @@ export default function ParentRewards() {
         <input
           type="number"
           min={0}
-          placeholder="Punktepreis"
-          value={price}
-          onChange={(e) => setPrice(Number(e.target.value))}
+          step={0.01}
+          placeholder="Preis in € (optional)"
+          value={priceEuroInput}
+          onChange={(e) => handleEuroChange(e.target.value)}
           className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
         />
+        <input
+          type="number"
+          min={0}
+          placeholder="Punktepreis"
+          value={price}
+          onChange={(e) => {
+            setPrice(Number(e.target.value))
+            setPriceEuroInput('')
+          }}
+          className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+        />
+        {setting && priceEuroInput && (
+          <p className="sm:col-span-4 text-xs text-[var(--color-ink-soft)] -mt-1">
+            {priceEuroInput.replace(',', '.')} € → {price.toLocaleString('de-DE')} Punkte (bei {setting.points_per_unit}{' '}
+            Punkte = {formatEuro(setting.euro_value)}). Du kannst die Punktzahl rechts trotzdem noch manuell anpassen.
+          </p>
+        )}
         <input
           placeholder="Bild-URL (optional)"
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+          className="sm:col-span-4 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
         />
         {imageUrl && (
           <div className="sm:col-span-4 flex items-center gap-3">
