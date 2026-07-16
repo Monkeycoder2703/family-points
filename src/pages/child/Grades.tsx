@@ -11,6 +11,7 @@ export default function ChildGrades() {
   const [subjectId, setSubjectId] = useState('')
   const [gradeValue, setGradeValue] = useState(2)
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [isReportCard, setIsReportCard] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
 
   async function load() {
@@ -39,12 +40,14 @@ export default function ChildGrades() {
       p_subject_id: subjectId,
       p_grade_value: gradeValue,
       p_date: date,
+      p_is_report_card: isReportCard,
     })
     if (error) {
       setMessage(error.message)
       return
     }
-    setMessage('Note gespeichert!')
+    setMessage(isReportCard ? 'Zeugnisnote gespeichert!' : 'Note gespeichert!')
+    setIsReportCard(false)
     load()
   }
 
@@ -52,7 +55,7 @@ export default function ChildGrades() {
     <Layout>
       <h1 className="font-display text-2xl font-semibold mb-6">Noten</h1>
 
-      <form onSubmit={submitGrade} className="grid sm:grid-cols-4 gap-2 mb-8">
+      <form onSubmit={submitGrade} className="grid sm:grid-cols-4 gap-2 mb-2">
         <select
           value={subjectId}
           onChange={(e) => setSubjectId(e.target.value)}
@@ -85,6 +88,15 @@ export default function ChildGrades() {
           Note eintragen
         </button>
       </form>
+      <label className="flex items-center gap-2 text-sm mb-6 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={isReportCard}
+          onChange={(e) => setIsReportCard(e.target.checked)}
+          className="w-4 h-4 accent-[var(--color-coin)]"
+        />
+        Das ist eine Zeugnisnote (zählt mehr Punkte)
+      </label>
       {message && <p className="mb-6 text-sm font-semibold text-[var(--color-sage)]">{message}</p>}
 
       <div className="flex flex-col gap-2">
@@ -93,8 +105,13 @@ export default function ChildGrades() {
             key={g.id}
             className="flex items-center justify-between rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-3"
           >
-            <span>
+            <span className="flex items-center gap-2">
               {g.subject?.name} · Note {g.grade_value} · {new Date(g.date).toLocaleDateString('de-DE')}
+              {g.is_report_card && (
+                <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-coin-soft)] text-[var(--color-ink)]">
+                  Zeugnis
+                </span>
+              )}
             </span>
             <span
               className={`ledger-figure font-semibold ${
