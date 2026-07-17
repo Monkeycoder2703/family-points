@@ -197,12 +197,12 @@ export default function ChildGrades() {
         <p className="text-sm text-[var(--color-ink-soft)] mb-3">
           Fehlt ein Fach in der Liste oben? Leg es hier selbst an.
         </p>
-        <form onSubmit={addSubject} className="flex flex-wrap gap-2">
+        <form onSubmit={addSubject} className="flex flex-col sm:flex-row gap-2">
           <input
             placeholder="Fach, z. B. Erdkunde"
             value={newSubjectName}
             onChange={(e) => setNewSubjectName(e.target.value)}
-            className="flex-1 min-w-[10rem] rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+            className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
           />
           <select
             value={newSubjectType}
@@ -244,7 +244,7 @@ export default function ChildGrades() {
                 key={g.id}
                 className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] p-3"
               >
-                <p className="text-xs text-[var(--color-ink-soft)] mb-2">Erkannt: „{g.rawLine}"</p>
+                <p className="text-xs text-[var(--color-ink-soft)] mb-2 break-words">Erkannt: „{g.rawLine}"</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <select
                     value={ocrSubjectChoice[g.id] ?? ''}
