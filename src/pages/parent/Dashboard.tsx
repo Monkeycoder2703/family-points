@@ -9,21 +9,43 @@ export default function ParentDashboard() {
   const [children, setChildren] = useState<Profile[]>([])
   const [pendingCount, setPendingCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function load() {
+    const { data: kids } = await supabase.from('profiles').select('*').eq('role', 'child')
+    setChildren((kids as Profile[]) ?? [])
+
+    const { count } = await supabase
+      .from('task_completions')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'pending')
+    setPendingCount(count ?? 0)
+    setLoading(false)
+  }
 
   useEffect(() => {
-    async function load() {
-      const { data: kids } = await supabase.from('profiles').select('*').eq('role', 'child')
-      setChildren((kids as Profile[]) ?? [])
-
-      const { count } = await supabase
-        .from('task_completions')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending')
-      setPendingCount(count ?? 0)
-      setLoading(false)
-    }
     load()
   }, [])
+
+  async function removeChild(child: Profile) {
+    const confirmed = window.confirm(
+      `„${child.display_name}" wirklich aus der Familie entfernen?\n\n` +
+        'Das Konto des Kindes bleibt bestehen, es wird aber von eurer Familie getrennt und braucht einen neuen ' +
+        'Einladungscode, um sich wieder zu verbinden. Aufgaben, Belohnungen usw. bleiben unverändert für alle ' +
+        'anderen Kinder erhalten.'
+    )
+    if (!confirmed) return
+    setRemovingId(child.id)
+    setError(null)
+    const { error } = await supabase.rpc('remove_child_from_family', { p_child_id: child.id })
+    setRemovingId(null)
+    if (error) {
+      setError(error.message)
+      return
+    }
+    load()
+  }
 
   return (
     <Layout>
@@ -36,6 +58,8 @@ export default function ParentDashboard() {
           + Kind verbinden
         </Link>
       </div>
+
+      {error && <p className="mb-4 text-sm font-semibold text-[var(--color-clay)]">{error}</p>}
 
       {pendingCount > 0 && (
         <Link
@@ -66,6 +90,13 @@ export default function ParentDashboard() {
                 <h2 className="font-display font-semibold text-lg">{child.display_name}</h2>
                 <PointBadge points={child.current_point_balance} />
               </div>
+              <button
+                onClick={() => removeChild(child)}
+                disabled={removingId === child.id}
+                className="mt-3 text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-clay)] text-[var(--color-clay)] disabled:opacity-50"
+              >
+                {removingId === child.id ? 'Entferne…' : 'Kind entfernen'}
+              </button>
             </div>
           ))}
         </div>
