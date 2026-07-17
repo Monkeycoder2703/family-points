@@ -16,11 +16,12 @@ export default function ParentDashboard() {
     const { data: kids } = await supabase.from('profiles').select('*').eq('role', 'child')
     setChildren((kids as Profile[]) ?? [])
 
-    const { count } = await supabase
-      .from('task_completions')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending')
-    setPendingCount(count ?? 0)
+    const [{ count: taskCount }, { count: gradeCount }, { count: redemptionCount }] = await Promise.all([
+      supabase.from('task_completions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('grades').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('redemptions').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    ])
+    setPendingCount((taskCount ?? 0) + (gradeCount ?? 0) + (redemptionCount ?? 0))
     setLoading(false)
   }
 
