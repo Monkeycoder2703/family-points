@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { Layout } from '../../components/Layout'
 import { ApprovalItem } from '../../components/ApprovalItem'
-import type { Redemption, TaskCompletion } from '../../types'
+import type { Grade, Redemption, TaskCompletion } from '../../types'
 
 export default function ParentApprovals() {
   const [completions, setCompletions] = useState<TaskCompletion[]>([])
   const [redemptions, setRedemptions] = useState<Redemption[]>([])
+  const [grades, setGrades] = useState<Grade[]>([])
   const [busyId, setBusyId] = useState<string | null>(null)
 
   async function load() {
@@ -23,6 +24,13 @@ export default function ParentApprovals() {
       .eq('status', 'pending')
       .order('requested_at', { ascending: false })
     setRedemptions((r as unknown as Redemption[]) ?? [])
+
+    const { data: g } = await supabase
+      .from('grades')
+      .select('*, subject:subjects(*), child:profiles!grades_child_id_fkey(*)')
+      .eq('status', 'pending')
+      .order('date', { ascending: false })
+    setGrades((g as unknown as Grade[]) ?? [])
   }
 
   useEffect(() => {
@@ -43,7 +51,14 @@ export default function ParentApprovals() {
     load()
   }
 
-  const nothingOpen = completions.length === 0 && redemptions.length === 0
+  async function reviewGrade(id: string, approve: boolean) {
+    setBusyId(id)
+    await supabase.rpc('review_grade', { p_grade_id: id, p_approve: approve })
+    setBusyId(null)
+    load()
+  }
+
+  const nothingOpen = completions.length === 0 && redemptions.length === 0 && grades.length === 0
 
   return (
     <Layout>
@@ -68,6 +83,29 @@ export default function ParentApprovals() {
                 busy={busyId === c.id}
                 onApprove={() => reviewTask(c.id, true)}
                 onReject={() => reviewTask(c.id, false)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {grades.length > 0 && (
+        <div className="mb-8">
+          <h2 className="font-semibold text-sm uppercase tracking-wide text-[var(--color-ink-soft)] mb-2">
+            Eingetragene Noten
+          </h2>
+          <div className="flex flex-col gap-2">
+            {grades.map((g) => (
+              <ApprovalItem
+                key={g.id}
+                title={`${g.child?.display_name} · ${g.subject?.name ?? 'Fach'} · Note ${g.grade_value}${
+                  g.is_report_card ? ' (Zeugnis)' : ''
+                }`}
+                subtitle={new Date(g.date).toLocaleDateString('de-DE')}
+                points={g.points_awarded}
+                busy={busyId === g.id}
+                onApprove={() => reviewGrade(g.id, true)}
+                onReject={() => reviewGrade(g.id, false)}
               />
             ))}
           </div>
