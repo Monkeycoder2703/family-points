@@ -67,6 +67,17 @@ html.dark body {
   background: var(--color-bg-dark);
 }
 
+/* Wichtig fürs Handy: Safari/iOS zoomt automatisch in ein Eingabefeld hinein,
+   sobald dessen Schrift kleiner als 16px ist - unabhängig von der
+   Zoom-Sperre im <head>. Deshalb hier bewusst fest auf 16px, auch wenn an
+   einer Stelle im Code versehentlich eine kleinere Textgröße (z. B. text-sm)
+   auf ein input/select/textarea gesetzt wurde. */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
 .font-display {
   font-family: var(--font-display);
 }
