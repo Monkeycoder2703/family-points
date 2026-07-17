@@ -10,6 +10,7 @@ export default function ParentRewards() {
   const { profile } = useAuth()
   const [rewards, setRewards] = useState<Reward[]>([])
   const [setting, setSetting] = useState<PointSetting | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
   const [price, setPrice] = useState(500)
   const [priceEuroInput, setPriceEuroInput] = useState('')
@@ -42,6 +43,30 @@ export default function ParentRewards() {
     if (profile?.family_id) load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.family_id])
+
+  function resetForm() {
+    setEditingId(null)
+    setTitle('')
+    setDescription('')
+    setImageUrl('')
+    setPrice(500)
+    setPriceEuroInput('')
+    setProductUrl('')
+    setImportedPriceEuro(null)
+    setImportError(null)
+  }
+
+  function startEdit(reward: Reward) {
+    setEditingId(reward.id)
+    setTitle(reward.title)
+    setDescription(reward.description ?? '')
+    setImageUrl(reward.image_url ?? '')
+    setPrice(reward.point_price)
+    setPriceEuroInput('')
+    setImportedPriceEuro(null)
+    setImportError(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function handleEuroChange(raw: string) {
     setPriceEuroInput(raw)
@@ -79,31 +104,43 @@ export default function ParentRewards() {
     }
   }
 
-  async function addReward(e: React.FormEvent) {
+  async function saveReward(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim() || !profile?.family_id) return
     setSaving(true)
-    await supabase.from('rewards').insert({
-      family_id: profile.family_id,
-      title,
-      description: description || null,
-      image_url: imageUrl || null,
-      point_price: price,
-    })
-    setTitle('')
-    setDescription('')
-    setImageUrl('')
-    setPrice(500)
-    setPriceEuroInput('')
-    setProductUrl('')
-    setImportedPriceEuro(null)
-    setImportError(null)
+    if (editingId) {
+      await supabase
+        .from('rewards')
+        .update({
+          title,
+          description: description || null,
+          image_url: imageUrl || null,
+          point_price: price,
+        })
+        .eq('id', editingId)
+    } else {
+      await supabase.from('rewards').insert({
+        family_id: profile.family_id,
+        title,
+        description: description || null,
+        image_url: imageUrl || null,
+        point_price: price,
+      })
+    }
+    resetForm()
     setSaving(false)
     load()
   }
 
   async function toggleActive(reward: Reward) {
     await supabase.from('rewards').update({ active: !reward.active }).eq('id', reward.id)
+    load()
+  }
+
+  async function deleteReward(reward: Reward) {
+    if (!window.confirm(`„${reward.title}" wirklich endgültig löschen?`)) return
+    await supabase.from('rewards').delete().eq('id', reward.id)
+    if (editingId === reward.id) resetForm()
     load()
   }
 
@@ -139,7 +176,15 @@ export default function ParentRewards() {
         </p>
       )}
 
-      <form onSubmit={addReward} className="grid sm:grid-cols-4 gap-2 mb-8">
+      <form onSubmit={saveReward} className="grid sm:grid-cols-4 gap-2 mb-8">
+        {editingId && (
+          <div className="sm:col-span-4 flex items-center justify-between rounded-lg bg-[var(--color-coin-soft)] px-3 py-2 text-sm">
+            <span className="font-semibold">Belohnung bearbeiten</span>
+            <button type="button" onClick={resetForm} className="underline font-semibold">
+              Abbrechen
+            </button>
+          </div>
+        )}
         <input
           placeholder="Titel"
           value={title}
@@ -199,7 +244,7 @@ export default function ParentRewards() {
           disabled={saving}
           className="sm:col-span-4 rounded-full py-2.5 font-semibold bg-[var(--color-parent)] text-white disabled:opacity-50"
         >
-          Belohnung anlegen
+          {saving ? 'Speichert…' : editingId ? 'Änderungen speichern' : 'Belohnung anlegen'}
         </button>
       </form>
 
@@ -209,18 +254,40 @@ export default function ParentRewards() {
             key={r.id}
             className="rounded-2xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4"
           >
+            {r.image_url && (
+              <img
+                src={r.image_url}
+                alt=""
+                className="w-full aspect-video object-cover rounded-lg mb-2"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+            )}
             <h3 className="font-display font-semibold">{r.title}</h3>
             <p className="ledger-figure text-[var(--color-coin)] font-semibold mt-1">{r.point_price} Pkt</p>
-            <button
-              onClick={() => toggleActive(r)}
-              className={`mt-3 text-xs font-semibold px-3 py-1.5 rounded-full border ${
-                r.active
-                  ? 'border-[var(--color-sage)] text-[var(--color-sage)]'
-                  : 'border-[var(--color-ink-soft)] text-[var(--color-ink-soft)]'
-              }`}
-            >
-              {r.active ? 'Aktiv' : 'Inaktiv'}
-            </button>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <button
+                onClick={() => toggleActive(r)}
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${
+                  r.active
+                    ? 'border-[var(--color-sage)] text-[var(--color-sage)]'
+                    : 'border-[var(--color-ink-soft)] text-[var(--color-ink-soft)]'
+                }`}
+              >
+                {r.active ? 'Aktiv' : 'Inaktiv'}
+              </button>
+              <button
+                onClick={() => startEdit(r)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-ink)] dark:border-[var(--color-paper-dim)]"
+              >
+                Bearbeiten
+              </button>
+              <button
+                onClick={() => deleteReward(r)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-clay)] text-[var(--color-clay)]"
+              >
+                Löschen
+              </button>
+            </div>
           </div>
         ))}
       </div>
