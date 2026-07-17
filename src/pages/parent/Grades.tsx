@@ -189,24 +189,39 @@ export default function ParentGrades() {
       </div>
 
       <h2 className="font-display text-xl font-semibold mb-3">Zuletzt eingetragene Noten</h2>
+      <p className="text-sm text-[var(--color-ink-soft)] mb-3">
+        Neue, noch unbestätigte Noten findest du im Tab „Freigaben".
+      </p>
       <div className="flex flex-col gap-2">
         {grades.map((g) => (
           <div
             key={g.id}
-            className="flex items-center justify-between rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-3"
+            className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-3"
           >
-            <span className="flex items-center gap-2">
+            <span className="flex flex-wrap items-center gap-2">
               {g.subject?.name} · Note {g.grade_value} · {new Date(g.date).toLocaleDateString('de-DE')}
               {g.is_report_card && (
                 <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-coin-soft)] text-[var(--color-ink)]">
                   Zeugnis
                 </span>
               )}
+              {g.status === 'pending' && (
+                <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-coin-soft)] text-[var(--color-ink)]">
+                  Wartet auf Bestätigung
+                </span>
+              )}
+              {g.status === 'rejected' && (
+                <span className="text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-clay-soft)] text-[var(--color-clay)]">
+                  Abgelehnt
+                </span>
+              )}
             </span>
-            <span className="ledger-figure font-semibold text-[var(--color-coin)]">
-              {g.points_awarded > 0 ? '+' : ''}
-              {g.points_awarded}
-            </span>
+            {g.status === 'approved' && (
+              <span className="ledger-figure font-semibold text-[var(--color-coin)]">
+                {g.points_awarded > 0 ? '+' : ''}
+                {g.points_awarded}
+              </span>
+            )}
           </div>
         ))}
       </div>
