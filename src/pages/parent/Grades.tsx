@@ -158,12 +158,12 @@ export default function ParentGrades() {
       </div>
 
       <h2 className="font-display text-xl font-semibold mb-3">Fächer</h2>
-      <form onSubmit={addSubject} className="flex gap-2 mb-4">
+      <form onSubmit={addSubject} className="flex flex-col sm:flex-row gap-2 mb-4">
         <input
           placeholder="Fach, z. B. Mathematik"
           value={subjectName}
           onChange={(e) => setSubjectName(e.target.value)}
-          className="flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+          className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
         />
         <select
           value={subjectType}
