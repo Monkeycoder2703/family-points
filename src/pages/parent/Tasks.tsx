@@ -122,7 +122,7 @@ export default function ParentTasks() {
                 {task.repeat_type} {task.category ? `· ${task.category}` : ''}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="ledger-figure font-semibold text-[var(--color-coin)]">+{task.points}</span>
               <button
                 onClick={() => toggleActive(task)}
