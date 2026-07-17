@@ -88,7 +88,10 @@ export interface Grade {
   date: string
   points_awarded: number
   is_report_card: boolean
+  status: ApprovalStatus
+  reviewed_at: string | null
   subject?: Subject
+  child?: Profile
 }
 
 export interface GradePointRule {
