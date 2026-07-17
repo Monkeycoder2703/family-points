@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
-import type { Grade, GradePointRule, PointSetting, Subject } from '../../types'
+import type { Grade, GradePointRule, PointSetting, ReportCardGradeRule, Subject } from '../../types'
 
 export default function ParentGrades() {
   const { profile } = useAuth()
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [rules, setRules] = useState<GradePointRule[]>([])
+  const [reportRule, setReportRule] = useState<ReportCardGradeRule | null>(null)
   const [grades, setGrades] = useState<Grade[]>([])
   const [subjectName, setSubjectName] = useState('')
   const [subjectType, setSubjectType] = useState<'main' | 'minor'>('main')
@@ -20,6 +21,12 @@ export default function ParentGrades() {
     setSubjects((s as Subject[]) ?? [])
     const { data: r } = await supabase.from('grade_point_rules').select('*').eq('family_id', profile.family_id)
     setRules((r as GradePointRule[]) ?? [])
+    const { data: rr } = await supabase
+      .from('report_card_grade_rules')
+      .select('*')
+      .eq('family_id', profile.family_id)
+      .single()
+    setReportRule((rr as ReportCardGradeRule) ?? null)
     const { data: g } = await supabase
       .from('grades')
       .select('*, subject:subjects(*)')
@@ -52,6 +59,12 @@ export default function ParentGrades() {
     load()
   }
 
+  async function updateReportRule(field: keyof ReportCardGradeRule, value: number) {
+    if (!profile?.family_id) return
+    await supabase.from('report_card_grade_rules').update({ [field]: value }).eq('family_id', profile.family_id)
+    load()
+  }
+
   async function saveMultiplier(e: React.FormEvent) {
     e.preventDefault()
     if (!profile?.family_id) return
@@ -70,10 +83,10 @@ export default function ParentGrades() {
       <div className="rounded-2xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4 mb-8">
         <h2 className="font-semibold mb-1">Zeugnisnoten</h2>
         <p className="text-sm text-[var(--color-ink-soft)] mb-3">
-          Zeugnisnoten zählen mit diesem Multiplikator mehr Punkte als eine einzelne Note (Grundwert × Multiplikator,
-          auf ganze Punkte gerundet).
+          Zeugnisnoten haben eigene Grundwerte (unten) und zählen zusätzlich mit diesem Multiplikator mehr Punkte
+          (Grundwert × Multiplikator, auf ganze Punkte gerundet).
         </p>
-        <form onSubmit={saveMultiplier} className="flex items-center gap-3">
+        <form onSubmit={saveMultiplier} className="flex items-center gap-3 mb-5">
           <label className="flex items-center gap-2 text-sm">
             Multiplikator
             <input
@@ -93,6 +106,28 @@ export default function ParentGrades() {
             Speichern
           </button>
         </form>
+
+        {reportRule && (
+          <>
+            <h3 className="text-sm font-semibold mb-2">Grundwerte für Zeugnisnoten (vor Multiplikator)</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+              {([1, 2, 3, 4, 5, 6] as const).map((g) => {
+                const field = `grade_${g}` as keyof ReportCardGradeRule
+                return (
+                  <label key={g} className="flex items-center gap-1">
+                    Note {g}
+                    <input
+                      type="number"
+                      value={reportRule[field]}
+                      onChange={(e) => updateReportRule(field, Number(e.target.value))}
+                      className="w-16 rounded-lg border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-transparent px-1.5 py-1 ledger-figure"
+                    />
+                  </label>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-8">
