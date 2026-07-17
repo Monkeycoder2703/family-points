@@ -43,6 +43,8 @@
 
 html {
   color-scheme: light;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 html.dark {
   color-scheme: dark;
@@ -61,6 +63,8 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 html.dark body {
