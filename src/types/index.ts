@@ -103,6 +103,16 @@ export interface GradePointRule {
   grade_6: number
 }
 
+export interface ReportCardGradeRule {
+  family_id: string
+  grade_1: number
+  grade_2: number
+  grade_3: number
+  grade_4: number
+  grade_5: number
+  grade_6: number
+}
+
 export interface PointTransaction {
   id: string
   child_id: string
