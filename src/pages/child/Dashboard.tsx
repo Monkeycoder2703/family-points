@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
 import { RewardCard } from '../../components/RewardCard'
 import { formatEuro } from '../../lib/points'
+import { getTaskStatus } from '../../lib/taskPeriods'
 import type { PointSetting, PointTransaction, Reward, Task, TaskCompletion } from '../../types'
 
 export default function ChildDashboard() {
@@ -14,18 +15,27 @@ export default function ChildDashboard() {
   const [recent, setRecent] = useState<PointTransaction[]>([])
   const [setting, setSetting] = useState<PointSetting | null>(null)
   const [myCompletions, setMyCompletions] = useState<TaskCompletion[]>([])
+  const [error, setError] = useState<string | null>(null)
 
   async function load() {
     if (!profile) return
     const { data: tasks } = await supabase.from('tasks').select('*').eq('active', true)
+    const taskList = (tasks as Task[]) ?? []
+
     const { data: completions } = await supabase
       .from('task_completions')
       .select('*')
       .eq('child_id', profile.id)
-      .eq('status', 'pending')
-    setMyCompletions((completions as TaskCompletion[]) ?? [])
-    const pendingTaskIds = new Set((completions as TaskCompletion[] | null)?.map((c) => c.task_id))
-    setOpenTasks(((tasks as Task[]) ?? []).filter((t) => !pendingTaskIds.has(t.id)))
+      .in('status', ['pending', 'approved'])
+    const completionList = (completions as TaskCompletion[]) ?? []
+
+    setMyCompletions(completionList.filter((c) => c.status === 'pending'))
+
+    setOpenTasks(
+      taskList.filter(
+        (t) => getTaskStatus(t.repeat_type, completionList.filter((c) => c.task_id === t.id)) === 'open'
+      )
+    )
 
     const { data: r } = await supabase.from('rewards').select('*').eq('active', true)
     setRewards(((r as Reward[]) ?? []).slice(0, 4))
@@ -52,7 +62,12 @@ export default function ChildDashboard() {
   }, [profile?.id])
 
   async function completeTask(taskId: string) {
-    await supabase.rpc('request_task_completion', { p_task_id: taskId })
+    setError(null)
+    const { error } = await supabase.rpc('request_task_completion', { p_task_id: taskId })
+    if (error) {
+      setError(error.message)
+      return
+    }
     load()
   }
 
@@ -74,6 +89,7 @@ export default function ChildDashboard() {
       </div>
 
       <h2 className="font-display text-xl font-semibold mb-3">Offene Aufgaben</h2>
+      {error && <p className="mb-3 text-sm font-semibold text-[var(--color-clay)]">{error}</p>}
       <div className="flex flex-col gap-2 mb-8">
         {openTasks.length === 0 && myCompletions.length === 0 && (
           <p className="text-[var(--color-ink-soft)]">Keine offenen Aufgaben – super gemacht! 🎉</p>
