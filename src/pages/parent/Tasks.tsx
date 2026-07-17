@@ -59,6 +59,15 @@ export default function ParentTasks() {
     load()
   }
 
+  async function deleteTask(task: Task) {
+    const confirmed = window.confirm(
+      `„${task.title}" wirklich endgültig löschen?\n\nDamit verschwindet auch der bisherige Erledigt-Verlauf dieser Aufgabe (bereits gutgeschriebene Punkte bleiben davon unberührt).`
+    )
+    if (!confirmed) return
+    await supabase.from('tasks').delete().eq('id', task.id)
+    load()
+  }
+
   return (
     <Layout>
       <h1 className="font-display text-2xl font-semibold mb-6">Aufgaben</h1>
@@ -124,6 +133,12 @@ export default function ParentTasks() {
                 }`}
               >
                 {task.active ? 'Aktiv' : 'Inaktiv'}
+              </button>
+              <button
+                onClick={() => deleteTask(task)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[var(--color-clay)] text-[var(--color-clay)]"
+              >
+                Löschen
               </button>
             </div>
           </div>
