@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
+import { SubjectManager } from '../../components/SubjectManager'
 import { recognizeReportCardImage, type OcrGuess } from '../../lib/gradeOcr'
 import type { Grade, Subject } from '../../types'
 
@@ -28,10 +29,6 @@ export default function ChildGrades() {
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [isReportCard, setIsReportCard] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
-
-  const [newSubjectName, setNewSubjectName] = useState('')
-  const [newSubjectType, setNewSubjectType] = useState<'main' | 'minor'>('main')
-  const [addingSubject, setAddingSubject] = useState(false)
 
   const [ocrBusy, setOcrBusy] = useState(false)
   const [ocrProgress, setOcrProgress] = useState(0)
@@ -75,18 +72,6 @@ export default function ChildGrades() {
     }
     setMessage('Eingetragen! Wartet jetzt auf Bestätigung durch ein Elternteil.')
     setIsReportCard(false)
-    load()
-  }
-
-  async function addSubject(e: React.FormEvent) {
-    e.preventDefault()
-    if (!newSubjectName.trim() || !profile?.family_id) return
-    setAddingSubject(true)
-    await supabase
-      .from('subjects')
-      .insert({ family_id: profile.family_id, name: newSubjectName.trim(), type: newSubjectType })
-    setNewSubjectName('')
-    setAddingSubject(false)
     load()
   }
 
@@ -193,32 +178,18 @@ export default function ChildGrades() {
       {message && <p className="mb-6 text-sm font-semibold text-[var(--color-sage)]">{message}</p>}
 
       <div className="rounded-2xl border border-dashed border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] p-4 mb-8">
-        <h2 className="font-semibold mb-1">Eigenes Fach hinzufügen</h2>
+        <h2 className="font-semibold mb-1">Fächer verwalten</h2>
         <p className="text-sm text-[var(--color-ink-soft)] mb-3">
-          Fehlt ein Fach in der Liste oben? Leg es hier selbst an.
+          Fehlt ein Fach? Leg es hier selbst an, oder bearbeite/lösche bestehende Fächer.
         </p>
-        <form onSubmit={addSubject} className="flex flex-col sm:flex-row gap-2">
-          <input
-            placeholder="Fach, z. B. Erdkunde"
-            value={newSubjectName}
-            onChange={(e) => setNewSubjectName(e.target.value)}
-            className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+        {profile?.family_id && (
+          <SubjectManager
+            subjects={subjects}
+            familyId={profile.family_id}
+            accentColor="var(--color-child)"
+            onChange={load}
           />
-          <select
-            value={newSubjectType}
-            onChange={(e) => setNewSubjectType(e.target.value as 'main' | 'minor')}
-            className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
-          >
-            <option value="main">Hauptfach</option>
-            <option value="minor">Nebenfach</option>
-          </select>
-          <button
-            disabled={addingSubject}
-            className="rounded-full px-4 py-2 font-semibold bg-[var(--color-child)] text-white disabled:opacity-50"
-          >
-            Hinzufügen
-          </button>
-        </form>
+        )}
       </div>
 
       <div className="rounded-2xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] p-4 mb-10">
