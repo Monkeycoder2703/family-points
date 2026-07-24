@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
+import { SubjectManager } from '../../components/SubjectManager'
 import type { Grade, GradePointRule, PointSetting, ReportCardGradeRule, Subject } from '../../types'
 
 export default function ParentGrades() {
@@ -10,8 +11,6 @@ export default function ParentGrades() {
   const [rules, setRules] = useState<GradePointRule[]>([])
   const [reportRule, setReportRule] = useState<ReportCardGradeRule | null>(null)
   const [grades, setGrades] = useState<Grade[]>([])
-  const [subjectName, setSubjectName] = useState('')
-  const [subjectType, setSubjectType] = useState<'main' | 'minor'>('main')
   const [multiplier, setMultiplier] = useState(2)
   const [savingMultiplier, setSavingMultiplier] = useState(false)
 
@@ -45,14 +44,6 @@ export default function ParentGrades() {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.family_id])
-
-  async function addSubject(e: React.FormEvent) {
-    e.preventDefault()
-    if (!subjectName.trim() || !profile?.family_id) return
-    await supabase.from('subjects').insert({ family_id: profile.family_id, name: subjectName, type: subjectType })
-    setSubjectName('')
-    load()
-  }
 
   async function updateRule(rule: GradePointRule, field: keyof GradePointRule, value: number) {
     await supabase.from('grade_point_rules').update({ [field]: value }).eq('id', rule.id)
@@ -158,35 +149,16 @@ export default function ParentGrades() {
       </div>
 
       <h2 className="font-display text-xl font-semibold mb-3">Fächer</h2>
-      <form onSubmit={addSubject} className="flex flex-col sm:flex-row gap-2 mb-4">
-        <input
-          placeholder="Fach, z. B. Mathematik"
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-          className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
-        />
-        <select
-          value={subjectType}
-          onChange={(e) => setSubjectType(e.target.value as 'main' | 'minor')}
-          className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
-        >
-          <option value="main">Hauptfach</option>
-          <option value="minor">Nebenfach</option>
-        </select>
-        <button className="rounded-full px-4 py-2 font-semibold bg-[var(--color-parent)] text-white">
-          Hinzufügen
-        </button>
-      </form>
-      <div className="flex flex-wrap gap-2 mb-10">
-        {subjects.map((s) => (
-          <span
-            key={s.id}
-            className="text-sm px-3 py-1.5 rounded-full border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
-          >
-            {s.name} · {s.type === 'main' ? 'Haupt' : 'Neben'}
-          </span>
-        ))}
-      </div>
+      {profile?.family_id && (
+        <div className="mb-10">
+          <SubjectManager
+            subjects={subjects}
+            familyId={profile.family_id}
+            accentColor="var(--color-parent)"
+            onChange={load}
+          />
+        </div>
+      )}
 
       <h2 className="font-display text-xl font-semibold mb-3">Zuletzt eingetragene Noten</h2>
       <p className="text-sm text-[var(--color-ink-soft)] mb-3">
