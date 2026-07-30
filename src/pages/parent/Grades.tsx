@@ -86,7 +86,7 @@ export default function ParentGrades() {
         </form>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4 mb-8">
+      <div className="grid md:grid-cols-2 gap-4 mb-8 items-start">
         {rules.map((rule) => (
           <div
             key={rule.id}
