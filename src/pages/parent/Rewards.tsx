@@ -17,6 +17,7 @@ export default function ParentRewards() {
   const [priceEuroInput, setPriceEuroInput] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [uploadingImage, setUploadingImage] = useState(false)
   const [redeemLimit, setRedeemLimit] = useState<RewardLimit>('unlimited')
   const [saving, setSaving] = useState(false)
 
@@ -78,6 +79,24 @@ export default function ParentRewards() {
     if (!Number.isNaN(euro) && setting) {
       setPrice(euroToPoints(euro, setting))
     }
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !profile?.family_id) return
+    setUploadingImage(true)
+    setImportError(null)
+    const fileExt = file.name.split('.').pop() ?? 'jpg'
+    const filePath = `${profile.family_id}/${crypto.randomUUID()}.${fileExt}`
+    const { error } = await supabase.storage.from('reward-images').upload(filePath, file)
+    setUploadingImage(false)
+    if (error) {
+      setImportError('Bild-Upload fehlgeschlagen: ' + error.message)
+      return
+    }
+    const { data } = supabase.storage.from('reward-images').getPublicUrl(filePath)
+    setImageUrl(data.publicUrl)
   }
 
   async function importFromUrl(e: React.FormEvent) {
@@ -237,12 +256,24 @@ export default function ParentRewards() {
             <option value="monthly">Monatlich (setzt sich am 1. jedes Monats zurück)</option>
           </select>
         </label>
-        <input
-          placeholder="Bild-URL (optional)"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          className="sm:col-span-4 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
-        />
+        <div className="sm:col-span-4 flex flex-col sm:flex-row gap-2">
+          <input
+            placeholder="Bild-URL (optional)"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+          />
+          <label className="inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-sm bg-[var(--color-ink)] text-white dark:text-[var(--color-bg-dark)] cursor-pointer whitespace-nowrap">
+            {uploadingImage ? 'Lädt hoch…' : '📷 Vom Gerät hochladen'}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={uploadingImage}
+              className="hidden"
+            />
+          </label>
+        </div>
         {imageUrl && (
           <div className="sm:col-span-4 flex items-center gap-3">
             <img
@@ -268,7 +299,7 @@ export default function ParentRewards() {
         </button>
       </form>
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4 items-start">
         {rewards.map((r) => (
           <div
             key={r.id}
