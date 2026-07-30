@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
 import { fetchProductInfo } from '../../lib/productImport'
 import { euroToPoints, formatEuro } from '../../lib/points'
-import type { PointSetting, Reward } from '../../types'
+import { rewardLimitLabels } from '../../lib/taskPeriods'
+import type { PointSetting, Reward, RewardLimit } from '../../types'
 
 export default function ParentRewards() {
   const { profile } = useAuth()
@@ -16,6 +17,7 @@ export default function ParentRewards() {
   const [priceEuroInput, setPriceEuroInput] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [redeemLimit, setRedeemLimit] = useState<RewardLimit>('unlimited')
   const [saving, setSaving] = useState(false)
 
   const [productUrl, setProductUrl] = useState('')
@@ -51,6 +53,7 @@ export default function ParentRewards() {
     setImageUrl('')
     setPrice(500)
     setPriceEuroInput('')
+    setRedeemLimit('unlimited')
     setProductUrl('')
     setImportedPriceEuro(null)
     setImportError(null)
@@ -63,6 +66,7 @@ export default function ParentRewards() {
     setImageUrl(reward.image_url ?? '')
     setPrice(reward.point_price)
     setPriceEuroInput('')
+    setRedeemLimit(reward.redeem_limit)
     setImportedPriceEuro(null)
     setImportError(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -116,6 +120,7 @@ export default function ParentRewards() {
           description: description || null,
           image_url: imageUrl || null,
           point_price: price,
+          redeem_limit: redeemLimit,
         })
         .eq('id', editingId)
     } else {
@@ -125,6 +130,7 @@ export default function ParentRewards() {
         description: description || null,
         image_url: imageUrl || null,
         point_price: price,
+        redeem_limit: redeemLimit,
       })
     }
     resetForm()
@@ -217,6 +223,20 @@ export default function ParentRewards() {
             Punkte = {formatEuro(setting.euro_value)}). Du kannst die Punktzahl rechts trotzdem noch manuell anpassen.
           </p>
         )}
+        <label className="sm:col-span-4 flex flex-col gap-1 text-sm">
+          Einlösbar
+          <select
+            value={redeemLimit}
+            onChange={(e) => setRedeemLimit(e.target.value as RewardLimit)}
+            className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
+          >
+            <option value="unlimited">Mehrmals (unbegrenzt, solange genug Punkte da sind)</option>
+            <option value="once">Einmalig (insgesamt nur ein einziges Mal)</option>
+            <option value="daily">Täglich (setzt sich jeden Tag zurück)</option>
+            <option value="weekly">Wöchentlich (setzt sich jeden Montag zurück)</option>
+            <option value="monthly">Monatlich (setzt sich am 1. jedes Monats zurück)</option>
+          </select>
+        </label>
         <input
           placeholder="Bild-URL (optional)"
           value={imageUrl}
@@ -264,6 +284,7 @@ export default function ParentRewards() {
             )}
             <h3 className="font-display font-semibold">{r.title}</h3>
             <p className="ledger-figure text-[var(--color-coin)] font-semibold mt-1">{r.point_price} Pkt</p>
+            <p className="text-xs text-[var(--color-ink-soft)] mt-1">{rewardLimitLabels[r.redeem_limit]}</p>
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <button
                 onClick={() => toggleActive(r)}
