@@ -1,8 +1,8 @@
-import type { RepeatType } from '../types'
+import type { RepeatType, RewardLimit } from '../types'
 
-/** Anfang des aktuellen Zeitraums für eine Wiederholung, oder null für "einmalig" (gilt für immer). */
-export function periodStart(repeatType: RepeatType, now: Date = new Date()): Date | null {
-  if (repeatType === 'once') return null
+/** Anfang des aktuellen Zeitraums für eine Wiederholung, oder null für "einmalig"/"unbegrenzt" (gilt für immer / keine Grenze). */
+export function periodStart(repeatType: RepeatType | RewardLimit, now: Date = new Date()): Date | null {
+  if (repeatType === 'once' || repeatType === 'unlimited') return null
 
   const d = new Date(now)
   if (repeatType === 'daily') {
@@ -21,13 +21,13 @@ export function periodStart(repeatType: RepeatType, now: Date = new Date()): Dat
 
 export type ChildTaskStatus = 'open' | 'pending' | 'done_for_period'
 
-interface CompletionLike {
+interface TimestampedStatus {
   status: string
   completed_at: string
 }
 
 /** Ermittelt den Status einer Aufgabe für ein Kind anhand seiner bisherigen Meldungen. */
-export function getTaskStatus(repeatType: RepeatType, completions: CompletionLike[]): ChildTaskStatus {
+export function getTaskStatus(repeatType: RepeatType, completions: TimestampedStatus[]): ChildTaskStatus {
   if (completions.some((c) => c.status === 'pending')) return 'pending'
 
   const approved = completions.filter((c) => c.status === 'approved')
@@ -40,7 +40,7 @@ export function getTaskStatus(repeatType: RepeatType, completions: CompletionLik
   return doneThisPeriod ? 'done_for_period' : 'open'
 }
 
-export function resetLabel(repeatType: RepeatType): string {
+export function resetLabel(repeatType: RepeatType | RewardLimit): string {
   switch (repeatType) {
     case 'daily':
       return 'Morgen wieder verfügbar'
@@ -48,7 +48,38 @@ export function resetLabel(repeatType: RepeatType): string {
       return 'Ab nächster Woche wieder verfügbar'
     case 'monthly':
       return 'Ab dem 1. nächsten Monats wieder verfügbar'
+    case 'unlimited':
+      return 'Verfügbar'
     default:
       return 'Bereits erledigt'
   }
+}
+
+interface RequestedStatus {
+  status: string
+  requested_at: string
+}
+
+/** Ermittelt den Status einer Belohnung für ein Kind anhand seiner bisherigen Einlöse-Anfragen. */
+export function getRewardStatus(limit: RewardLimit, redemptions: RequestedStatus[]): ChildTaskStatus {
+  if (redemptions.some((r) => r.status === 'pending')) return 'pending'
+
+  if (limit === 'unlimited') return 'open'
+
+  const approved = redemptions.filter((r) => r.status === 'approved')
+  if (approved.length === 0) return 'open'
+
+  if (limit === 'once') return 'done_for_period'
+
+  const start = periodStart(limit)!
+  const doneThisPeriod = approved.some((r) => new Date(r.requested_at) >= start)
+  return doneThisPeriod ? 'done_for_period' : 'open'
+}
+
+export const rewardLimitLabels: Record<RewardLimit, string> = {
+  unlimited: 'Mehrmals einlösbar',
+  once: 'Einmalig einlösbar',
+  daily: 'Täglich einlösbar',
+  weekly: 'Wöchentlich einlösbar',
+  monthly: 'Monatlich einlösbar',
 }
