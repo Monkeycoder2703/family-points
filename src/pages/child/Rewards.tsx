@@ -57,7 +57,7 @@ export default function ChildRewards() {
     <Layout>
       <h1 className="font-display text-2xl font-semibold mb-6">Belohnungen</h1>
       {message && <p className="mb-4 text-sm text-[var(--color-sage)] font-semibold">{message}</p>}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
         {rewards.map((r) => (
           <RewardCard
             key={r.id}
