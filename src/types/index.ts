@@ -1,5 +1,6 @@
 export type Role = 'parent' | 'child'
 export type RepeatType = 'once' | 'daily' | 'weekly' | 'monthly'
+export type RewardLimit = 'unlimited' | 'once' | 'daily' | 'weekly' | 'monthly'
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
 export type SubjectType = 'main' | 'minor'
 
@@ -58,6 +59,7 @@ export interface Reward {
   description: string | null
   image_url: string | null
   point_price: number
+  redeem_limit: RewardLimit
   active: boolean
 }
 
