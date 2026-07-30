@@ -3,24 +3,36 @@ import { supabase } from '../../lib/supabaseClient'
 import { useAuth } from '../../context/AuthContext'
 import { Layout } from '../../components/Layout'
 import { RewardCard } from '../../components/RewardCard'
+import { getRewardStatus, type ChildTaskStatus } from '../../lib/taskPeriods'
 import type { Redemption, Reward } from '../../types'
 
 export default function ChildRewards() {
   const { profile } = useAuth()
   const [rewards, setRewards] = useState<Reward[]>([])
-  const [pendingRewardIds, setPendingRewardIds] = useState<Set<string>>(new Set())
+  const [statusByReward, setStatusByReward] = useState<Record<string, ChildTaskStatus>>({})
   const [message, setMessage] = useState<string | null>(null)
 
   async function load() {
     if (!profile) return
     const { data: r } = await supabase.from('rewards').select('*').eq('active', true).order('point_price')
-    setRewards((r as Reward[]) ?? [])
-    const { data: p } = await supabase
+    const rewardList = (r as Reward[]) ?? []
+    setRewards(rewardList)
+
+    const { data: red } = await supabase
       .from('redemptions')
       .select('*')
       .eq('child_id', profile.id)
-      .eq('status', 'pending')
-    setPendingRewardIds(new Set(((p as Redemption[]) ?? []).map((x) => x.reward_id)))
+      .in('status', ['pending', 'approved'])
+    const redemptions = (red as Redemption[]) ?? []
+
+    const statuses: Record<string, ChildTaskStatus> = {}
+    for (const reward of rewardList) {
+      statuses[reward.id] = getRewardStatus(
+        reward.redeem_limit,
+        redemptions.filter((x) => x.reward_id === reward.id)
+      )
+    }
+    setStatusByReward(statuses)
   }
 
   useEffect(() => {
@@ -51,7 +63,7 @@ export default function ChildRewards() {
             key={r.id}
             reward={r}
             currentPoints={profile.current_point_balance}
-            redeeming={pendingRewardIds.has(r.id)}
+            status={statusByReward[r.id] ?? 'open'}
             onRedeem={() => redeem(r.id)}
           />
         ))}
