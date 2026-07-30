@@ -28,7 +28,7 @@ export function RewardCard({ reward, currentPoints, onRedeem, status = 'open' }:
       <div>
         <h3 className="font-display font-semibold text-lg leading-tight">{reward.title}</h3>
         {reward.description && (
-          <p className="text-sm text-[var(--color-ink-soft)] mt-1 line-clamp-2">{reward.description}</p>
+          <p className="text-sm text-[var(--color-ink-soft)] mt-1">{reward.description}</p>
         )}
         {reward.redeem_limit !== 'unlimited' && (
           <span className="inline-block mt-1 text-xs font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--color-coin-soft)] text-[var(--color-ink)]">
