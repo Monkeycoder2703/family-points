@@ -17,7 +17,9 @@ export default function ParentRewards() {
   const [priceEuroInput, setPriceEuroInput] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [imagePreview, setImagePreview] = useState('')
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [redeemLimit, setRedeemLimit] = useState<RewardLimit>('unlimited')
   const [saving, setSaving] = useState(false)
 
@@ -52,6 +54,8 @@ export default function ParentRewards() {
     setTitle('')
     setDescription('')
     setImageUrl('')
+    setImagePreview('')
+    setImageUploadError(null)
     setPrice(500)
     setPriceEuroInput('')
     setRedeemLimit('unlimited')
@@ -65,6 +69,8 @@ export default function ParentRewards() {
     setTitle(reward.title)
     setDescription(reward.description ?? '')
     setImageUrl(reward.image_url ?? '')
+    setImagePreview('')
+    setImageUploadError(null)
     setPrice(reward.point_price)
     setPriceEuroInput('')
     setRedeemLimit(reward.redeem_limit)
@@ -85,18 +91,39 @@ export default function ParentRewards() {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file || !profile?.family_id) return
+
+    // Sofort eine lokale Vorschau zeigen, unabhängig vom Hochladen - so sieht
+    // man direkt, dass das Foto ausgewählt wurde, auch falls der Upload
+    // danach fehlschlägt (z. B. schwaches Mobilfunknetz).
+    setImagePreview(URL.createObjectURL(file))
     setUploadingImage(true)
-    setImportError(null)
-    const fileExt = file.name.split('.').pop() ?? 'jpg'
-    const filePath = `${profile.family_id}/${crypto.randomUUID()}.${fileExt}`
-    const { error } = await supabase.storage.from('reward-images').upload(filePath, file)
-    setUploadingImage(false)
-    if (error) {
-      setImportError('Bild-Upload fehlgeschlagen: ' + error.message)
-      return
+    setImageUploadError(null)
+
+    try {
+      const rawExt = file.name.includes('.') ? file.name.split('.').pop() ?? '' : ''
+      const safeExt = /^[a-zA-Z0-9]{1,5}$/.test(rawExt) ? rawExt.toLowerCase() : 'jpg'
+      const filePath = `${profile.family_id}/${crypto.randomUUID()}.${safeExt}`
+
+      const { error } = await supabase.storage.from('reward-images').upload(filePath, file, {
+        contentType: file.type || 'image/jpeg',
+        upsert: false,
+      })
+      if (error) {
+        setImageUploadError('Bild-Upload fehlgeschlagen: ' + error.message)
+        return
+      }
+
+      const { data } = supabase.storage.from('reward-images').getPublicUrl(filePath)
+      setImageUrl(data.publicUrl)
+    } catch (err) {
+      setImageUploadError(
+        err instanceof Error
+          ? `Bild-Upload fehlgeschlagen: ${err.message}`
+          : 'Bild-Upload fehlgeschlagen. Bitte nochmal versuchen oder ein anderes Foto wählen.'
+      )
+    } finally {
+      setUploadingImage(false)
     }
-    const { data } = supabase.storage.from('reward-images').getPublicUrl(filePath)
-    setImageUrl(data.publicUrl)
   }
 
   async function importFromUrl(e: React.FormEvent) {
@@ -260,7 +287,10 @@ export default function ParentRewards() {
           <input
             placeholder="Bild-URL (optional)"
             value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
+            onChange={(e) => {
+              setImageUrl(e.target.value)
+              setImagePreview('')
+            }}
             className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
           />
           <label className="inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-sm bg-[var(--color-ink)] text-white dark:text-[var(--color-bg-dark)] cursor-pointer whitespace-nowrap">
@@ -274,15 +304,20 @@ export default function ParentRewards() {
             />
           </label>
         </div>
-        {imageUrl && (
+        {imageUploadError && (
+          <p className="sm:col-span-4 text-sm text-[var(--color-clay)] -mt-1">{imageUploadError}</p>
+        )}
+        {(imagePreview || imageUrl) && (
           <div className="sm:col-span-4 flex items-center gap-3">
             <img
-              src={imageUrl}
+              src={imagePreview || imageUrl}
               alt="Vorschau"
               className="w-16 h-16 rounded-lg object-cover border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
               onError={(e) => (e.currentTarget.style.display = 'none')}
             />
-            <span className="text-xs text-[var(--color-ink-soft)]">Bildvorschau</span>
+            <span className="text-xs text-[var(--color-ink-soft)]">
+              {uploadingImage ? 'Wird hochgeladen…' : 'Bildvorschau'}
+            </span>
           </div>
         )}
         <textarea
