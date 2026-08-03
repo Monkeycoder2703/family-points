@@ -12,10 +12,13 @@ import '@fontsource/ibm-plex-mono/600.css'
 import './index.css'
 import App from './App.tsx'
 
-// Zusätzliche Zoom-Sperre für Handys: Die viewport-Meta-Angabe allein
-// ("user-scalable=no") wird von manchen modernen Browsern inzwischen
-// ignoriert. Diese Listener blockieren Zwei-Finger-Zoom (Safari-Geste) und
-// Doppeltipp-Zoom zusätzlich auf JavaScript-Ebene.
+// Zoom-Sperre für Handys, rein auf JavaScript-Ebene (siehe index.html: dort
+// bewusst KEINE "maximum-scale"/"user-scalable=no" Angabe mehr, weil das bei
+// manchen Android-Browsern - z. B. Samsung Internet - dazu führen kann, dass
+// die Seite nach dem Schließen der Bildschirmtastatur verzerrt/verschoben
+// hängen bleibt). Diese Listener blockieren stattdessen gezielt
+// Zwei-Finger-Zoom und Doppeltipp-Zoom, ohne den Browser bei der
+// Tastatur-Darstellung zu verwirren.
 document.addEventListener('gesturestart', (e) => e.preventDefault())
 document.addEventListener(
   'touchmove',
