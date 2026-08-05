@@ -92,15 +92,17 @@ export default function ParentRewards() {
     e.target.value = ''
     if (!file || !profile?.family_id) return
 
-    // Sofort eine lokale Vorschau zeigen, unabhängig vom Hochladen - so sieht
-    // man direkt, dass das Foto ausgewählt wurde, auch falls der Upload
-    // danach fehlschlägt (z. B. schwaches Mobilfunknetz).
-    setImagePreview(URL.createObjectURL(file))
     setUploadingImage(true)
     setImageUploadError(null)
 
     try {
-      const rawExt = file.name.includes('.') ? file.name.split('.').pop() ?? '' : ''
+      // Sofort eine lokale Vorschau zeigen, unabhängig vom Hochladen - so
+      // sieht man direkt, dass das Foto ausgewählt wurde, auch falls der
+      // Upload danach fehlschlägt (z. B. schwaches Mobilfunknetz).
+      setImagePreview(URL.createObjectURL(file))
+
+      const rawName = file.name || ''
+      const rawExt = rawName.includes('.') ? rawName.split('.').pop() ?? '' : ''
       const safeExt = /^[a-zA-Z0-9]{1,5}$/.test(rawExt) ? rawExt.toLowerCase() : 'jpg'
       const filePath = `${profile.family_id}/${crypto.randomUUID()}.${safeExt}`
 
@@ -116,6 +118,8 @@ export default function ParentRewards() {
       const { data } = supabase.storage.from('reward-images').getPublicUrl(filePath)
       setImageUrl(data.publicUrl)
     } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Bild-Upload Fehler:', err)
       setImageUploadError(
         err instanceof Error
           ? `Bild-Upload fehlgeschlagen: ${err.message}`
@@ -207,7 +211,7 @@ export default function ParentRewards() {
       <form onSubmit={importFromUrl} className="flex flex-col sm:flex-row gap-2 mb-3">
         <input
           type="url"
-          placeholder="Produktlink einfügen, z. B. https://shop.de/produkt/1234"
+          placeholder="Produktlink einfügen"
           value={productUrl}
           onChange={(e) => setProductUrl(e.target.value)}
           className="flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
@@ -228,7 +232,7 @@ export default function ParentRewards() {
         </p>
       )}
 
-      <form onSubmit={saveReward} className="grid sm:grid-cols-4 gap-2 mb-8">
+      <form onSubmit={saveReward} className="grid grid-cols-1 sm:grid-cols-4 gap-2 mb-8">
         {editingId && (
           <div className="sm:col-span-4 flex items-center justify-between rounded-lg bg-[var(--color-coin-soft)] px-3 py-2 text-sm">
             <span className="font-semibold">Belohnung bearbeiten</span>
@@ -276,13 +280,20 @@ export default function ParentRewards() {
             onChange={(e) => setRedeemLimit(e.target.value as RewardLimit)}
             className="rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
           >
-            <option value="unlimited">Mehrmals (unbegrenzt, solange genug Punkte da sind)</option>
-            <option value="once">Einmalig (insgesamt nur ein einziges Mal)</option>
-            <option value="daily">Täglich (setzt sich jeden Tag zurück)</option>
-            <option value="weekly">Wöchentlich (setzt sich jeden Montag zurück)</option>
-            <option value="monthly">Monatlich (setzt sich am 1. jedes Monats zurück)</option>
+            <option value="unlimited">Mehrmals</option>
+            <option value="once">Einmalig</option>
+            <option value="daily">Täglich</option>
+            <option value="weekly">Wöchentlich</option>
+            <option value="monthly">Monatlich</option>
           </select>
         </label>
+        <p className="sm:col-span-4 text-xs text-[var(--color-ink-soft)] -mt-2">
+          {redeemLimit === 'unlimited' && 'Beliebig oft einlösbar, solange genug Punkte vorhanden sind.'}
+          {redeemLimit === 'once' && 'Kann insgesamt nur ein einziges Mal eingelöst werden.'}
+          {redeemLimit === 'daily' && 'Setzt sich jeden Tag um Mitternacht zurück.'}
+          {redeemLimit === 'weekly' && 'Setzt sich jeden Montag zurück.'}
+          {redeemLimit === 'monthly' && 'Setzt sich am 1. jedes Monats zurück.'}
+        </p>
         <div className="sm:col-span-4 flex flex-col sm:flex-row gap-2">
           <input
             placeholder="Bild-URL (optional)"
@@ -293,14 +304,14 @@ export default function ParentRewards() {
             }}
             className="w-full sm:flex-1 rounded-xl border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)] bg-[var(--color-surface)] dark:bg-[var(--color-surface-dark)] px-3 py-2"
           />
-          <label className="inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-sm bg-[var(--color-ink)] text-white dark:text-[var(--color-bg-dark)] cursor-pointer whitespace-nowrap">
+          <label className="relative inline-flex items-center justify-center rounded-xl px-4 py-2 font-semibold text-sm bg-[var(--color-ink)] text-white dark:text-[var(--color-bg-dark)] cursor-pointer whitespace-nowrap">
             {uploadingImage ? 'Lädt hoch…' : '📷 Vom Gerät hochladen'}
             <input
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
               disabled={uploadingImage}
-              className="hidden"
+              className="sr-only"
             />
           </label>
         </div>
@@ -334,7 +345,7 @@ export default function ParentRewards() {
         </button>
       </form>
 
-      <div className="grid sm:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
         {rewards.map((r) => (
           <div
             key={r.id}
