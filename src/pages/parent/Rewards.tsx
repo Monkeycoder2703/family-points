@@ -18,6 +18,7 @@ export default function ParentRewards() {
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [imagePreview, setImagePreview] = useState('')
+  const [imagePreviewBroken, setImagePreviewBroken] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const [redeemLimit, setRedeemLimit] = useState<RewardLimit>('unlimited')
@@ -55,6 +56,7 @@ export default function ParentRewards() {
     setDescription('')
     setImageUrl('')
     setImagePreview('')
+    setImagePreviewBroken(false)
     setImageUploadError(null)
     setPrice(500)
     setPriceEuroInput('')
@@ -70,6 +72,7 @@ export default function ParentRewards() {
     setDescription(reward.description ?? '')
     setImageUrl(reward.image_url ?? '')
     setImagePreview('')
+    setImagePreviewBroken(false)
     setImageUploadError(null)
     setPrice(reward.point_price)
     setPriceEuroInput('')
@@ -94,6 +97,7 @@ export default function ParentRewards() {
 
     setUploadingImage(true)
     setImageUploadError(null)
+    setImagePreviewBroken(false)
 
     try {
       // Sofort eine lokale Vorschau zeigen, unabhängig vom Hochladen - so
@@ -117,6 +121,7 @@ export default function ParentRewards() {
 
       const { data } = supabase.storage.from('reward-images').getPublicUrl(filePath)
       setImageUrl(data.publicUrl)
+      setImagePreview('')
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('Bild-Upload Fehler:', err)
@@ -320,14 +325,22 @@ export default function ParentRewards() {
         )}
         {(imagePreview || imageUrl) && (
           <div className="sm:col-span-4 flex items-center gap-3">
-            <img
-              src={imagePreview || imageUrl}
-              alt="Vorschau"
-              className="w-16 h-16 rounded-lg object-cover border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
-            />
+            {!imagePreviewBroken && (
+              <img
+                key={imagePreview || imageUrl}
+                src={imagePreview || imageUrl}
+                alt="Vorschau"
+                className="w-16 h-16 rounded-lg object-cover border border-[var(--color-paper-dim)] dark:border-[var(--color-border-dark)]"
+                onError={() => setImagePreviewBroken(true)}
+                onLoad={() => setImagePreviewBroken(false)}
+              />
+            )}
             <span className="text-xs text-[var(--color-ink-soft)]">
-              {uploadingImage ? 'Wird hochgeladen…' : 'Bildvorschau'}
+              {uploadingImage
+                ? 'Wird hochgeladen…'
+                : imagePreviewBroken
+                  ? 'Vorschau kann auf diesem Gerät nicht angezeigt werden (Bild wurde aber trotzdem gespeichert).'
+                  : 'Bildvorschau'}
             </span>
           </div>
         )}
